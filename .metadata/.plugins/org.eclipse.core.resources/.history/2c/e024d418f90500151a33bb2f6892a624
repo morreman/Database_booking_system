@@ -1,0 +1,198 @@
+
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
+import java.util.Arrays;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+public class View extends JPanel {
+	
+	private JTextArea ta  = new JTextArea();
+	private DatabaseConnection db = new DatabaseConnection();
+	private JList list;
+	private DefaultListModel listModel;
+	private JScrollPane scrollPane;
+	private JButton btnBandNamn;
+	
+	public View() {
+		JFrame frame = new JFrame("Konsert sökningar");
+		frame.setLayout(new BorderLayout());
+		frame.pack();
+		frame.setVisible(true);
+		frame.setSize(1224, 568);
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(leftPanel(), BorderLayout.WEST);
+		frame.add(topPanel(), BorderLayout.NORTH);
+		frame.add(centrePanel(), BorderLayout.CENTER);
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		frame.setLocation(dim.width / 2 - frame.getSize().width / 2, dim.height
+				/ 2 - frame.getSize().height / 2);
+	}
+	
+	public JPanel leftPanel(){
+		JPanel panel = new JPanel();
+		listModel = new DefaultListModel();
+		list = new JList<String>(listModel);
+		scrollPane = new JScrollPane(list);
+		
+
+		list.setFont(new Font("Sans-serif", Font.PLAIN, 16));
+		list.setPreferredSize(new Dimension(200, 768));
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		scrollPane.setPreferredSize(new Dimension(225,768));
+		Border border = BorderFactory.createMatteBorder(0,1,0,0, Color.GRAY);
+		this.setBorder(border);
+		this.setBackground(Color.WHITE);
+		panel.add(scrollPane, list);
+		
+		list.addListSelectionListener( e -> fromList(list.getSelectedValue().toString()));
+
+		return panel;
+	}
+	
+	public JPanel topPanel(){
+		JPanel panel = new JPanel();
+		panel.setPreferredSize(new Dimension(100,100));
+		panel.setLayout(new GridLayout(1,7));
+		panel.setBorder(BorderFactory.createTitledBorder("Gör ditt val"));
+		btnBandNamn = new JButton("BandNamn");
+		JButton btnSchema = new JButton("Schema");
+		JButton btnScen = new JButton("Scen info");
+		JButton btnKP = new JButton("KontaktPerson");
+		JButton btnSearch = new JButton("Sök Artist");
+		JButton btnExit = new JButton("Avsluta");
+		JButton btnSearchMember = new JButton ("Sök medlem");
+		panel.add(btnBandNamn);
+		panel.add(btnSchema);
+		panel.add(btnScen);
+		panel.add(btnKP);
+		panel.add(btnSearch);
+		panel.add(btnSearchMember);
+		panel.add(btnExit);
+		btnKP.addActionListener(e -> kontakt());
+		btnScen.addActionListener(e -> scener());
+		btnSearch.addActionListener(e -> search());
+		btnBandNamn.addActionListener(e -> bandnamnArray());
+		btnSchema.addActionListener(e -> schema());
+		btnSearchMember.addActionListener(e -> searchMember());
+		btnExit.addActionListener(e -> exit());
+		return panel;
+	}
+
+//	public JPanel searchPanel(){
+//		
+//	}
+	
+	public void downPanel(){
+		
+	}
+	
+	public JPanel centrePanel(){
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.setPreferredSize(new Dimension(300,300));
+		panel.setBorder(BorderFactory.createDashedBorder(Color.CYAN, 20, 5));
+		ta.setEditable(false);
+		panel.add(ta);
+		
+		return panel;
+	}
+	
+	public void exit(){
+		System.exit(0);
+	}
+	
+	public void kontakt(){
+		String que, person;
+		JDialog.setDefaultLookAndFeelDecorated(true);
+		Object[] selectionValues = { "Adam: 19120212-1234", "Örjan: 19440412-4321", "Alf: 19760314-5555", "Jörgen: 19981222-4242" };
+		String initialSelection = "Adam: 19120212-1234";
+		Object selection = JOptionPane.showInputDialog(null, "Kontakt Personer",
+		        "Info om KontaktPerson", JOptionPane.QUESTION_MESSAGE, null, selectionValues, initialSelection);
+		que = selection.toString().substring(selection.toString().indexOf(":") + 2);
+		person = "select Namn from Arbetare where Personnummer =" + "'" + que + "'";
+		db.kontaktPerson("select Bandnamn from Band where Kontaktperson =" + "'" + que + "'");
+		db.kontaktNamn(person);
+		System.out.println(que);
+		ta.setText(db.getKnanmn() + "\n" + db.getKontaktPerson());
+	}
+	
+	public void scener() {
+		String query = "select * from Scen";
+		db.scen(query);
+		ta.setText(db.getScen() + "\n");
+	}
+	
+	public void bandnamnArray(){
+		String query = "select Bandnamn from Band";
+		String array;
+		db.band(query);
+		array = db.getBandArray();
+		String[] temp = array.split(("!"));
+		for( String arr : temp){
+			listModel.addElement(arr.trim());
+		}
+		btnBandNamn.setEnabled(false);
+	}
+	
+	public void schema(){
+		String query = "select * from Spelschema";
+		db.schema(query);
+		ta.setText(db.getSchema() + "\n");
+	}
+	
+	public void searchMember(){
+		String query = JOptionPane.showInputDialog("Vilken artist vill du se information om?");
+		JDialog.setDefaultLookAndFeelDecorated(true);
+//		Object selection = JOptionPane.showInputDialog(
+	}
+	
+	public void search(){
+		String band = JOptionPane.showInputDialog("Vilket band letar du efter?" );
+		String query = "select * from Band where Bandnamn =" + "'" + band + "'";
+		db.searchBand(query);
+		db.medlemmar(band);
+		String member = db.getMedlemmar();
+		ta.setText(db.getSearchBandnamn() + "\n\n" + member);
+		}
+	
+	public void fromList(String query){
+		String member, binfo, speltid, infomember;
+		String bandinfo = "select * from Band where BandNamn =" + "'" + query + "'";
+		String schema = "select * from Spelschema where Bandnamn =" + "'" + query + "'";
+		String infomedlem = "select PersonligInfo from Medlemmar where Bandnamn =" + "'" + query + "'";
+		db.medlemmar(query);
+		db.schema(schema);
+		db.searchBand(bandinfo);
+		member = db.getMedlemmar();
+		db.infomember(infomedlem);
+		binfo = db.getSearchBandnamn();
+		speltid = db.getSchema();
+		infomember = db.getInfoMember();
+		ta.setText(binfo +"\n" + speltid + "\n" + member + "\n\n" + infomember);
+		
+	}
+	
+
+	
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				View view = new View();
+			}
+		});
+	}
+	
+}
