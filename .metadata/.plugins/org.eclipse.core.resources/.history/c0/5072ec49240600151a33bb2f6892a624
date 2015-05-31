@@ -65,7 +65,7 @@ public class View extends JPanel {
 	public JPanel topPanel(){
 		JPanel panel = new JPanel();
 		panel.setPreferredSize(new Dimension(100,100));
-		panel.setLayout(new GridLayout(1,7));
+		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createTitledBorder("Gör ditt val"));
 		btnBandNamn = new JButton("BandNamn");
 		JButton btnSchema = new JButton("Schema");

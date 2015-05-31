@@ -105,7 +105,6 @@ public class View extends JPanel {
 		panel.setPreferredSize(new Dimension(300,300));
 		panel.setBorder(BorderFactory.createDashedBorder(Color.CYAN, 20, 5));
 		ta.setEditable(false);
-		ta.setBackground(Color.RED);
 		panel.add(ta);
 		
 		return panel;
